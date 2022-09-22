@@ -7,10 +7,5 @@ class Square
   def initialize(name, piece = nil)
     @name = name
     @piece = piece
-    @neighbor = []
-  end
-
-  def add_neighbor(square)
-    @neighbor << square
   end
 end
