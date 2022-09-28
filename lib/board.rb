@@ -48,10 +48,13 @@ class Board
       end
   end
 
-  def display 
-    # Before you do that. Now you need to implement the second version of 
-    # nomenclature, a.k.a. coordinate system. It should help you with pieces'
-    # logic and with the display function, as you could address each rank
-    # separetely. 
+  def display
+    @vertical_nomenclature.reverse.each do |rank| 
+      @horizontal_nomenclature.each_index do |file_i|
+        coordinate = [file_i, rank.to_i - 1]
+        @coordinate_hash[coordinate].display_square
+      end
+      puts
+    end
   end
 end

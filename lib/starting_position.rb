@@ -3,23 +3,23 @@
 # part of the game initialization. Placing the pieces on starting squares.
 module StartingPosition
   def place_rooks
-    @board_hash['a1'].piece,
+    @board_hash['a1'].piece = Rook.new('white')
     @board_hash['h1'].piece = Rook.new('white')
-    @board_hash['a8'].piece,
+    @board_hash['a8'].piece = Rook.new('black')
     @board_hash['h8'].piece = Rook.new('black')
   end
 
   def place_knights
-    @board_hash['b1'].piece,
+    @board_hash['b1'].piece = Knight.new('white')
     @board_hash['g1'].piece = Knight.new('white')
-    @board_hash['b1'].piece,
     @board_hash['b8'].piece = Knight.new('black')
+    @board_hash['g8'].piece = Knight.new('black')
   end
 
   def place_bishops
-    @board_hash['c1'].piece,
+    @board_hash['c1'].piece = Bishop.new('white')
     @board_hash['f1'].piece = Bishop.new('white')
-    @board_hash['c8'].piece,
+    @board_hash['c8'].piece = Bishop.new('black')
     @board_hash['f8'].piece = Bishop.new('black')
   end
 
