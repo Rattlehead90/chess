@@ -1,6 +1,5 @@
 # frozen_string_literal: false
 
-require 'colorize'
 require_relative '../lib/square'
 require_relative '../lib/piece'
 require_relative '../lib/pieces/rook'
@@ -11,13 +10,13 @@ require_relative '../lib/pieces/queen'
 require_relative '../lib/pieces/pawn'
 require_relative '../lib/starting_position'
 
-# stores squares in a board_hash, performs meta-functions of a graph
+# stores squares in a name_hash, performs meta-functions of a graph
 class Board
   include StartingPosition
-  attr_accessor :board_hash, :coordinate_hash
+  attr_accessor :name_hash, :coordinate_hash
 
   def initialize
-    @board_hash = {}
+    @name_hash = {}
     @coordinate_hash = {}
     @horizontal_nomenclature = %w[a b c d e f g h]
     @vertical_nomenclature = %w[1 2 3 4 5 6 7 8]
@@ -25,13 +24,33 @@ class Board
     place_pieces
   end
 
+  def display
+    @vertical_nomenclature.reverse.each do |rank|
+      print "#{rank} "
+      @horizontal_nomenclature.each_index do |file_i|
+        @coordinate_hash[[file_i, rank.to_i - 1]].display_square
+      end
+      puts
+    end
+    print '   '
+    @horizontal_nomenclature.each { |letter| print "#{letter}  " }
+    puts
+  end
+
+  def move_piece(start_square, end_square)
+    @name_hash[start_square].piece, @name_hash[end_square].piece =
+      @name_hash[end_square].piece, @name_hash[start_square].piece
+  end
+  
+  private
+
   def create_notation
     @horizontal_nomenclature.each_with_index do |file, file_index|
       @vertical_nomenclature.each_with_index do |rank, rank_index|
         name = file + rank
         coordinate = [file_index, rank_index]
         square = Square.new(name)
-        @board_hash[name] = square
+        @name_hash[name] = square
         assign_square_color(name, rank, file)
         @coordinate_hash[coordinate] = square
       end
@@ -39,22 +58,12 @@ class Board
   end
 
   def assign_square_color(name, rank, file)
-    square = @board_hash[name]
+    square = @name_hash[name]
     square.color = 
       if %w[a c e g].include?(file)
         rank.to_i.odd? ? 'black' : 'white'
       else
         rank.to_i.odd? ? 'white' : 'black'
       end
-  end
-
-  def display
-    @vertical_nomenclature.reverse.each do |rank| 
-      @horizontal_nomenclature.each_index do |file_i|
-        coordinate = [file_i, rank.to_i - 1]
-        @coordinate_hash[coordinate].display_square
-      end
-      puts
-    end
   end
 end
