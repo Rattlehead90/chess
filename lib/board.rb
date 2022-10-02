@@ -10,21 +10,46 @@ require_relative '../lib/pieces/queen'
 require_relative '../lib/pieces/pawn'
 require_relative '../lib/starting_position'
 
+require 'pry-byebug'
+
 # stores squares in a name_hash, performs meta-functions of a graph
 class Board
   include StartingPosition
-  attr_accessor :name_hash, :coordinate_hash
+  attr_accessor :name_hash, :coordinate_hash, :captured_pieces
 
   def initialize
     @name_hash = {}
     @coordinate_hash = {}
     @horizontal_nomenclature = %w[a b c d e f g h]
     @vertical_nomenclature = %w[1 2 3 4 5 6 7 8]
+    @captured_pieces = []
     create_notation
     place_pieces
   end
 
   def display
+    print_board
+    print_horizontal_nomenclature
+    print_captured_pieces
+  end
+
+  def move_piece(start_square, end_square)
+    if @name_hash[end_square].piece.nil?
+      move_piece_on_free_square(start_square, end_square) 
+    else
+      capture_piece(start_square, end_square)
+    end
+  end
+
+  private
+
+  def print_horizontal_nomenclature
+    print '   '
+    @horizontal_nomenclature.each { |letter| print "#{letter}  " }
+    puts
+  end
+
+  def print_board
     @vertical_nomenclature.reverse.each do |rank|
       print "#{rank} "
       @horizontal_nomenclature.each_index do |file_i|
@@ -32,17 +57,22 @@ class Board
       end
       puts
     end
-    print '   '
-    @horizontal_nomenclature.each { |letter| print "#{letter}  " }
-    puts
   end
 
-  def move_piece(start_square, end_square)
+  def print_captured_pieces
+    @captured_pieces.each { |icon| print "#{icon} " }
+  end
+
+  def capture_piece(start_square, end_square)
+    @captured_pieces << @name_hash[end_square].piece.icon
+    @name_hash[end_square].piece = nil
+    move_piece_on_free_square(start_square, end_square)
+  end
+
+  def move_piece_on_free_square(start_square, end_square)
     @name_hash[start_square].piece, @name_hash[end_square].piece =
       @name_hash[end_square].piece, @name_hash[start_square].piece
   end
-  
-  private
 
   def create_notation
     @horizontal_nomenclature.each_with_index do |file, file_index|

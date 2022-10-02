@@ -2,6 +2,7 @@
 
 require_relative '../lib/board'
 require_relative '../lib/player'
+require 'pry-byebug'
 
 # a class that obtains and valorizes a player input
 class Game
@@ -29,6 +30,8 @@ class Game
   end
 
   def legal_move?(square_name)
+    return false if board.name_hash[square_name].piece.nil?
+
     current_player =
       if white.active
         white
@@ -47,12 +50,22 @@ class Game
     end
   end
 
-  def player_end_square_turn
+  def player_end_square_turn(start_square)
     loop do
       end_square = validate_input(player_end_input)
-      return end_square if end_square
+      es_coordinates = board.coordinate_hash.key(board.name_hash[end_square])
+      return end_square if end_square &&
+                           possible_moves(start_square).include?(es_coordinates)
 
       puts 'Invalid input!'
+      reset_pawn(start_square)
+    end
+  end
+
+  def reset_pawn(square)
+    if (board.name_hash[square].piece.instance_of? Pawn) &&
+       square.match?(/^[a-h]7$/)
+      board.name_hash[square].piece.moved = false
     end
   end
 
@@ -61,27 +74,38 @@ class Game
     black.turn
   end
 
-  # okay now to find a way to set a game_loop which would be able to switch 
-  # the turns and find a way to properly (not only syntacticly validate the 
-  # input).
+  def possible_moves(square_name)
+    start_square = board.name_hash[square_name]
+    relative_moves = start_square.piece.relative_moves
+    start_coordinates = board.coordinate_hash.key(start_square)
+    get_absolute_moves(relative_moves, start_coordinates)
+  end
+
+  def get_absolute_moves(relative_moves, start_coordinates)
+    absolute_moves = []
+    relative_moves.each do |move_direction|
+      x = (move_direction[0] + start_coordinates[0])
+      y = (move_direction[1] + start_coordinates[1])
+      absolute_moves.append([x, y]) if board.coordinate_hash.keys.include?([x, y])
+    end
+    absolute_moves
+  end
 
   def player_turn
     loop do
       system 'clear'
       board.display
       start_square = player_start_square_turn
-      # possible_moves_list = possible_moves(start_square)
-      end_square = player_end_square_turn
-      # possible_moves_list.include?(end_square)
+      end_square = player_end_square_turn(start_square)
       board.move_piece(start_square, end_square)
       switch_turns
     end
   end
 
   # what we need to validate:
-  #   - if the square has a piece that corresponds to a player whose turn it is
-  #   - there is a piece on a start square
-  #   - end square should be one of the possible moves for a piece
+  #   v if the square has a piece that corresponds to a player whose turn it is
+  #   v there is a piece on a start square
+  #   v end square should be one of the possible moves for a piece
   #   - the move should not lead to a check
 end
 
