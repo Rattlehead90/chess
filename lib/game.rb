@@ -25,6 +25,7 @@ class Game
     gets.chomp
   end
 
+  # find a way to opt out of the move 
   def validate_input(square_name)
     return square_name if square_name.match?(/^[a-h][1-8]$/)
   end
@@ -52,6 +53,7 @@ class Game
 
   def player_end_square_turn(start_square)
     loop do
+      binding.pry
       end_square = validate_input(player_end_input)
       es_coordinates = board.coordinate_hash.key(board.name_hash[end_square])
       return end_square if end_square &&
@@ -64,7 +66,7 @@ class Game
 
   def reset_pawn(square)
     if (board.name_hash[square].piece.instance_of? Pawn) &&
-       square.match?(/^[a-h]7$/)
+       square.match?(/^[a-h][2,7]$/)
       board.name_hash[square].piece.moved = false
     end
   end
@@ -76,12 +78,45 @@ class Game
 
   def possible_moves(square_name)
     start_square = board.name_hash[square_name]
-    relative_moves = start_square.piece.relative_moves
     start_coordinates = board.coordinate_hash.key(start_square)
-    get_absolute_moves(relative_moves, start_coordinates)
+    get_absolute_moves(square_name, start_coordinates)
   end
 
-  def get_absolute_moves(relative_moves, start_coordinates)
+  def get_absolute_moves(start_square, start_coordinates)
+    absolute_moves = []
+    start_piece = board.name_hash[start_square].piece
+    direction_of_attack = [start_piece.rm_vertical, start_piece.rm_horizontal,
+                           start_piece.rm_bend, start_piece.rm_bend_sinister]
+    direction_of_attack.each do |direction|
+      line_of_attack = relative_to_absolute_coordinates(direction, start_coordinates)
+      absolute_moves += cut_attack_line(line_of_attack, start_coordinates)
+    end
+  end
+
+  def cut_attack_line(line_of_attack, start_coordinates)
+    line_of_attack.each_with_index do |coordinate, index|
+      if coordinate[0] < start_coordinates[0]
+        unless board.coordinate_hash[coordinate].piece.nil?
+          last_piece = index
+        end
+      else
+        unless board.coordinate_hash[coordinate].piece.nil?
+          first_piece = index
+          break
+        end
+      end
+    end
+    last_piece ||= -1
+    last_piece += 1
+    first_piece ||= -1
+    unless first_piece == -1 
+      line_of_attack[last_piece...first_piece]
+    else
+      line_of_attack[last_piece..first_piece]
+    end
+  end
+
+  def relative_to_absolute_coordinates(relative_moves, start_coordinates)
     absolute_moves = []
     relative_moves.each do |move_direction|
       x = (move_direction[0] + start_coordinates[0])
